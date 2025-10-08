@@ -1,6 +1,6 @@
-import React from 'react';
-import { Layout, Typography, Badge, Avatar, Dropdown, Menu } from 'antd';
-import { BellOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Layout, Typography, Badge, Avatar, Dropdown, Menu, Button, message } from 'antd';
+import { BellOutlined, UserOutlined, SettingOutlined, LogoutOutlined, ClearOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Header: AntHeader } = Layout;
@@ -48,6 +48,105 @@ const StatusIndicator = styled.div`
 `;
 
 const Header = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [apiStatus, setApiStatus] = useState('checking');
+
+  // Check API status and generate notifications
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/health');
+        if (response.ok) {
+          setApiStatus('connected');
+          // Generate sample notifications
+          const sampleNotifications = [
+            {
+              id: 1,
+              title: 'Portfolio Optimization Complete',
+              message: 'Your portfolio has been optimized with a Sharpe ratio of 1.23',
+              time: '2 minutes ago',
+              type: 'success'
+            },
+            {
+              id: 2,
+              title: 'Market Alert',
+              message: 'AAPL price has increased by 5.2% today',
+              time: '15 minutes ago',
+              type: 'info'
+            },
+            {
+              id: 3,
+              title: 'Risk Analysis Warning',
+              message: 'Portfolio volatility has exceeded 15% threshold',
+              time: '1 hour ago',
+              type: 'warning'
+            }
+          ];
+          setNotifications(sampleNotifications);
+        } else {
+          setApiStatus('disconnected');
+        }
+      } catch (error) {
+        setApiStatus('disconnected');
+        console.error('API check failed:', error);
+      }
+    };
+
+    checkApiStatus();
+    // Check every 30 seconds
+    const interval = setInterval(checkApiStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    message.success('All notifications cleared');
+  };
+
+  const notificationMenu = (
+    <Menu style={{ width: 350, maxHeight: 400, overflow: 'auto' }}>
+      <Menu.Item key="header" style={{ borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text strong>Notifications</Text>
+          {notifications.length > 0 && (
+            <Button 
+              type="text" 
+              size="small" 
+              icon={<ClearOutlined />} 
+              onClick={clearAllNotifications}
+            >
+              Clear All
+            </Button>
+          )}
+        </div>
+      </Menu.Item>
+      {notifications.length === 0 ? (
+        <Menu.Item key="empty" disabled>
+          <Text type="secondary">No notifications</Text>
+        </Menu.Item>
+      ) : (
+        notifications.map(notification => (
+          <Menu.Item key={notification.id} style={{ padding: '8px 16px' }}>
+            <div>
+              <Text strong style={{ color: notification.type === 'warning' ? '#fa8c16' : 
+                    notification.type === 'success' ? '#52c41a' : '#1890ff' }}>
+                {notification.title}
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {notification.message}
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: '11px' }}>
+                {notification.time}
+              </Text>
+            </div>
+          </Menu.Item>
+        ))
+      )}
+    </Menu>
+  );
+
   const userMenu = (
     <Menu>
       <Menu.Item key="profile" icon={<UserOutlined />}>
@@ -76,13 +175,21 @@ const Header = () => {
       
       <HeaderRight>
         <StatusIndicator>
-          <div className="status-dot" />
-          <Text type="secondary">API Connected</Text>
+          <div className="status-dot" style={{ 
+            background: apiStatus === 'connected' ? '#52c41a' : 
+                       apiStatus === 'disconnected' ? '#ff4d4f' : '#faad14' 
+          }} />
+          <Text type="secondary">
+            API {apiStatus === 'connected' ? 'Connected' : 
+                 apiStatus === 'disconnected' ? 'Disconnected' : 'Checking...'}
+          </Text>
         </StatusIndicator>
         
-        <Badge count={3} size="small">
-          <BellOutlined style={{ fontSize: 18, color: '#666' }} />
-        </Badge>
+        <Dropdown overlay={notificationMenu} placement="bottomRight" trigger={['click']}>
+          <Badge count={notifications.length} size="small">
+            <BellOutlined style={{ fontSize: 18, color: '#666', cursor: 'pointer' }} />
+          </Badge>
+        </Dropdown>
         
         <Dropdown overlay={userMenu} placement="bottomRight">
           <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer' }} />

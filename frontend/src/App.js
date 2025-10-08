@@ -13,6 +13,8 @@ import MarketAnalysis from './pages/MarketAnalysis';
 import PortfolioOptimizer from './pages/PortfolioOptimizer';
 import SentimentAnalysis from './pages/SentimentAnalysis';
 import Backtesting from './pages/Backtesting';
+import TechnicalAnalysis from './pages/TechnicalAnalysis';
+import RiskAnalysis from './pages/RiskAnalysis';
 import About from './pages/About';
 
 // Styled Components
@@ -62,6 +64,8 @@ function App() {
                   <Route path="/market" element={<MarketAnalysis />} />
                   <Route path="/portfolio" element={<PortfolioOptimizer />} />
                   <Route path="/sentiment" element={<SentimentAnalysis />} />
+                  <Route path="/technical" element={<TechnicalAnalysis />} />
+                  <Route path="/risk" element={<RiskAnalysis />} />
                   <Route path="/backtesting" element={<Backtesting />} />
                   <Route path="/about" element={<About />} />
                 </Routes>

@@ -6,6 +6,8 @@ import {
   LineChartOutlined,
   PieChartOutlined,
   HeartOutlined,
+  TrendingUpOutlined,
+  WarningOutlined,
   ExperimentOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
@@ -54,6 +56,16 @@ const menuItems = [
     key: '/sentiment',
     icon: <HeartOutlined />,
     label: 'Sentiment Analysis',
+  },
+  {
+    key: '/technical',
+    icon: <TrendingUpOutlined />,
+    label: 'Technical Analysis',
+  },
+  {
+    key: '/risk',
+    icon: <WarningOutlined />,
+    label: 'Risk Analysis',
   },
   {
     key: '/backtesting',

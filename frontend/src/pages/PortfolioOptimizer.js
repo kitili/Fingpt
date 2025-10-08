@@ -59,12 +59,6 @@ const PortfolioOptimizer = () => {
   const createPieChart = (weights) => {
     if (!weights) return null;
 
-    const data = Object.entries(weights).map(([symbol, weight]) => ({
-      labels: symbol,
-      values: weight * 100,
-      type: 'pie'
-    }));
-
     return {
       data: [{
         labels: Object.keys(weights),

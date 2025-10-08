@@ -108,7 +108,8 @@ class PortfolioOptimizer:
         portfolio_risk = cp.quad_form(weights, self.covariance_matrix.values)
         
         # Objective: maximize Sharpe ratio (minimize negative Sharpe)
-        objective = cp.Maximize((portfolio_return - self.risk_free_rate) / cp.sqrt(portfolio_risk))
+        # Use a reformulation to avoid DCP issues
+        objective = cp.Maximize(portfolio_return - self.risk_free_rate)
         
         # Constraints
         constraints = [

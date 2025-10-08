@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Input, Button, Select, Space, Typography, Spin, message, Table, Progress } from 'antd';
-import { PieChartOutlined, LineChartOutlined } from '@ant-design/icons';
+import { PieChartOutlined } from '@ant-design/icons';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import Plot from 'react-plotly.js';
@@ -129,7 +129,7 @@ const PortfolioOptimizer = () => {
             <Input
               placeholder="Enter symbols (e.g., AAPL,GOOGL,MSFT)"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => handleSymbolsChange(e.target.value)}
               onPressEnter={handleOptimize}
               style={{ width: 300 }}
             />

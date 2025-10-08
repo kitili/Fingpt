@@ -53,12 +53,12 @@ const MarketAnalysis = () => {
   };
 
   const createPriceChart = (data) => {
-    if (!data || !data.summary) return null;
+    if (!data || !data.data || !data.data.summary) return null;
 
-    const symbols = Object.keys(data.summary);
+    const symbols = Object.keys(data.data.summary);
     const traces = symbols.map((symbol, index) => ({
       x: Array.from({ length: 30 }, (_, i) => new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)),
-      y: Array.from({ length: 30 }, () => data.summary[symbol].current_price + (Math.random() - 0.5) * 10),
+      y: Array.from({ length: 30 }, () => data.data.summary[symbol].current_price + (Math.random() - 0.5) * 10),
       type: 'scatter',
       mode: 'lines',
       name: symbol,
@@ -79,10 +79,10 @@ const MarketAnalysis = () => {
   };
 
   const createVolatilityChart = (data) => {
-    if (!data || !data.summary) return null;
+    if (!data || !data.data || !data.data.summary) return null;
 
-    const symbols = Object.keys(data.summary);
-    const volatilities = symbols.map(symbol => data.summary[symbol].volatility);
+    const symbols = Object.keys(data.data.summary);
+    const volatilities = symbols.map(symbol => data.data.summary[symbol].volatility);
 
     return {
       data: [{
@@ -115,7 +115,7 @@ const MarketAnalysis = () => {
             <Input
               placeholder="Enter symbols (e.g., AAPL,GOOGL,MSFT)"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => handleSymbolsChange(e.target.value)}
               onPressEnter={handleAnalyze}
               style={{ width: 300 }}
             />

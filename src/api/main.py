@@ -6,7 +6,8 @@ REST API for FinGPT financial analysis services.
 Demonstrates: API development, data serialization, error handling, async programming
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
@@ -315,6 +316,12 @@ async def run_backtest(
         # Filter data by date range
         start_date = pd.to_datetime(request.start_date)
         end_date = pd.to_datetime(request.end_date)
+        # Convert index to datetime if needed and handle timezone
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
+        # Remove timezone info for comparison
+        if data.index.tz is not None:
+            data.index = data.index.tz_localize(None)
         data = data[(data.index >= start_date) & (data.index <= end_date)]
         
         if data.empty:
@@ -406,12 +413,18 @@ async def get_optimization_methods():
 
 # Error handlers
 @app.exception_handler(404)
-async def not_found_handler(request, exc):
-    return {"error": "Not found", "detail": str(exc)}
+async def not_found_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=404,
+        content={"error": "Not found", "detail": str(exc)}
+    )
 
 @app.exception_handler(500)
-async def internal_error_handler(request, exc):
-    return {"error": "Internal server error", "detail": str(exc)}
+async def internal_error_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal server error", "detail": str(exc)}
+    )
 
 if __name__ == "__main__":
     import uvicorn

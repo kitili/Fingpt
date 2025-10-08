@@ -107,15 +107,16 @@ class PortfolioOptimizer:
         portfolio_return = self.expected_returns.values @ weights
         portfolio_risk = cp.quad_form(weights, self.covariance_matrix.values)
         
-        # Objective: maximize Sharpe ratio (minimize negative Sharpe)
-        # Use a reformulation to avoid DCP issues
+        # Objective: maximize excess return subject to risk constraint
+        # This is a proxy for maximizing Sharpe ratio that avoids DCP issues
         objective = cp.Maximize(portfolio_return - self.risk_free_rate)
         
         # Constraints
         constraints = [
             cp.sum(weights) == 1,  # Weights sum to 1
             weights >= 0,  # No short selling
-            weights <= 1   # No single asset > 100%
+            weights <= 1,  # No single asset > 100%
+            portfolio_risk <= 0.1  # Risk constraint (10% variance)
         ]
         
         # Solve

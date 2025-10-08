@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Input, Button, Select, Space, Typography, Spin, message, Table, Statistic } from 'antd';
-import { LineChartOutlined, BarChartOutlined, TrendingUpOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Row, Col, Input, Button, Select, Space, Typography, Spin, message, Statistic } from 'antd';
+import { BarChartOutlined, RiseOutlined } from '@ant-design/icons';
 import Plot from 'react-plotly.js';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
 const TechnicalAnalysis = () => {
@@ -305,7 +305,7 @@ const TechnicalAnalysis = () => {
   return (
     <div style={{ padding: '24px' }}>
       <Title level={2}>
-        <TrendingUpOutlined /> Technical Analysis
+        <RiseOutlined /> Technical Analysis
       </Title>
       
       <Card style={{ marginBottom: '24px' }}>

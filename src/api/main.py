@@ -416,7 +416,7 @@ async def get_optimization_methods():
 async def not_found_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=404,
-        content={"error": "Not found", "detail": str(exc)}
+        content={"error": "Not found", "detail": str(exc.detail) if hasattr(exc, 'detail') else str(exc)}
     )
 
 @app.exception_handler(500)

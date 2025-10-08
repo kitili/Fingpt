@@ -6,7 +6,7 @@ import {
   LineChartOutlined,
   PieChartOutlined,
   HeartOutlined,
-  TrendingUpOutlined,
+  RiseOutlined,
   WarningOutlined,
   ExperimentOutlined,
   InfoCircleOutlined,
@@ -57,11 +57,11 @@ const menuItems = [
     icon: <HeartOutlined />,
     label: 'Sentiment Analysis',
   },
-  {
-    key: '/technical',
-    icon: <TrendingUpOutlined />,
-    label: 'Technical Analysis',
-  },
+      {
+        key: '/technical',
+        icon: <RiseOutlined />,
+        label: 'Technical Analysis',
+      },
   {
     key: '/risk',
     icon: <WarningOutlined />,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Row, Col, Input, Button, Select, Space, Typography, Spin, message, Table, Progress, Statistic } from 'antd';
 import { WarningOutlined, SafetyOutlined, BarChartOutlined } from '@ant-design/icons';
 import Plot from 'react-plotly.js';

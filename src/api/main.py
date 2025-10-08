@@ -265,11 +265,13 @@ async def optimize_portfolio(
         optimizer.prepare_data(data)
         
         # Run optimization based on method
+        logger.info(f"Running optimization method: {request.method}")
         if request.method == "max_sharpe":
             result = optimizer.optimize_maximum_sharpe_ratio()
         elif request.method == "min_variance":
             result = optimizer.optimize_minimum_variance()
         elif request.method == "risk_parity":
+            logger.info("Calling risk_parity_optimization method")
             result = optimizer.risk_parity_optimization()
         else:
             raise HTTPException(status_code=400, detail="Invalid optimization method")

@@ -142,8 +142,23 @@ class PortfolioOptimizer:
                 optimization_time=optimization_time
             )
         else:
-            logger.error(f"Optimization failed: {problem.status}")
-            return None
+            logger.warning(f"Maximum Sharpe optimization failed: {problem.status}, using equal weights")
+            # Fallback to equal weights
+            equal_weights = np.ones(n_assets) / n_assets
+            expected_return, volatility, sharpe_ratio = self.calculate_portfolio_metrics(equal_weights)
+            
+            return OptimizationResult(
+                weights=PortfolioWeights(
+                    symbols=list(self.expected_returns.index),
+                    weights=equal_weights,
+                    expected_return=expected_return,
+                    volatility=volatility,
+                    sharpe_ratio=sharpe_ratio
+                ),
+                optimization_method="Equal Weight (Fallback)",
+                constraints_satisfied=True,
+                optimization_time=optimization_time
+            )
     
     def optimize_minimum_variance(self) -> OptimizationResult:
         """
@@ -302,56 +317,42 @@ class PortfolioOptimizer:
     
     def risk_parity_optimization(self) -> OptimizationResult:
         """
-        Risk parity optimization
+        Risk parity optimization using inverse volatility weighting
         Demonstrates: Alternative optimization approach, risk budgeting
         """
         import time
         start_time = time.time()
         
+        logger.info("Starting risk parity optimization")
         n_assets = len(self.expected_returns)
         
-        # Variables
-        weights = cp.Variable(n_assets)
+        # Calculate inverse volatility weights (risk parity approach)
+        # This is a simple but effective risk parity method that avoids DCP issues
+        volatilities = np.sqrt(np.diag(self.covariance_matrix.values))
+        inv_volatilities = 1.0 / volatilities
+        inv_vol_weights = inv_volatilities / np.sum(inv_volatilities)
         
-        # Risk contributions
-        risk_contributions = cp.multiply(weights, (self.covariance_matrix.values @ weights))
+        logger.info(f"Calculated inverse volatility weights: {inv_vol_weights}")
         
-        # Objective: minimize sum of squared deviations from equal risk contributions
-        target_risk_contrib = cp.sum(risk_contributions) / n_assets
-        objective = cp.Minimize(cp.sum_squares(risk_contributions - target_risk_contrib))
-        
-        # Constraints
-        constraints = [
-            cp.sum(weights) == 1,  # Weights sum to 1
-            weights >= 0,  # No short selling
-            weights <= 1   # No single asset > 100%
-        ]
-        
-        # Solve
-        problem = cp.Problem(objective, constraints)
-        problem.solve()
+        # Calculate portfolio metrics
+        expected_return, volatility, sharpe_ratio = self.calculate_portfolio_metrics(inv_vol_weights)
         
         optimization_time = time.time() - start_time
         
-        if problem.status == "optimal":
-            optimal_weights = weights.value
-            expected_return, volatility, sharpe_ratio = self.calculate_portfolio_metrics(optimal_weights)
-            
-            return OptimizationResult(
-                weights=PortfolioWeights(
-                    symbols=list(self.expected_returns.index),
-                    weights=optimal_weights,
-                    expected_return=expected_return,
-                    volatility=volatility,
-                    sharpe_ratio=sharpe_ratio
-                ),
-                optimization_method="Risk Parity",
-                constraints_satisfied=True,
-                optimization_time=optimization_time
-            )
-        else:
-            logger.error(f"Risk parity optimization failed: {problem.status}")
-            return None
+        logger.info(f"Risk parity optimization completed in {optimization_time:.4f}s")
+        
+        return OptimizationResult(
+            weights=PortfolioWeights(
+                symbols=list(self.expected_returns.index),
+                weights=inv_vol_weights,
+                expected_return=expected_return,
+                volatility=volatility,
+                sharpe_ratio=sharpe_ratio
+            ),
+            optimization_method="Risk Parity (Inverse Volatility)",
+            constraints_satisfied=True,
+            optimization_time=optimization_time
+        )
     
     def compare_optimization_methods(self) -> Dict[str, OptimizationResult]:
         """

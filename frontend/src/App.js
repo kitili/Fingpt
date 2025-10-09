@@ -68,6 +68,7 @@ function App() {
                   <Route path="/risk" element={<RiskAnalysis />} />
                   <Route path="/backtesting" element={<Backtesting />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="*" element={<Dashboard />} />
                 </Routes>
               </ContentWrapper>
             </Layout>

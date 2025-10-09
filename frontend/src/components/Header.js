@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Typography, Badge, Avatar, Dropdown, Menu, Button, message } from 'antd';
-import { BellOutlined, UserOutlined, SettingOutlined, LogoutOutlined, ClearOutlined } from '@ant-design/icons';
+import { Layout, Typography, Badge, Avatar, Dropdown, Menu, Button, message, Modal, Form, Input, Switch, Select } from 'antd';
+import { BellOutlined, UserOutlined, SettingOutlined, LogoutOutlined, ClearOutlined, EditOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Header: AntHeader } = Layout;
@@ -50,6 +50,39 @@ const StatusIndicator = styled.div`
 const Header = () => {
   const [notifications, setNotifications] = useState([]);
   const [apiStatus, setApiStatus] = useState('checking');
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [profileForm] = Form.useForm();
+  const [settingsForm] = Form.useForm();
+  const [userProfile, setUserProfile] = useState({
+    name: 'John Doe',
+    email: 'john.doe@fingpt.com',
+    role: 'Financial Analyst',
+    department: 'Quantitative Research',
+    joinDate: '2024-01-15'
+  });
+  const [userSettings, setUserSettings] = useState({
+    theme: 'light',
+    notifications: true,
+    autoRefresh: true,
+    refreshInterval: 30,
+    defaultPeriod: '1y',
+    riskTolerance: 'moderate'
+  });
+
+  // Load saved user data on component mount
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    const savedSettings = localStorage.getItem('userSettings');
+    
+    if (savedProfile) {
+      setUserProfile(JSON.parse(savedProfile));
+    }
+    
+    if (savedSettings) {
+      setUserSettings(JSON.parse(savedSettings));
+    }
+  }, []);
 
   // Check API status and generate notifications
   useEffect(() => {
@@ -103,6 +136,69 @@ const Header = () => {
     message.success('All notifications cleared');
   };
 
+  // Profile handlers
+  const handleProfileClick = () => {
+    setProfileModalVisible(true);
+    profileForm.setFieldsValue(userProfile);
+  };
+
+  const handleProfileUpdate = async (values) => {
+    try {
+      const updatedProfile = { ...userProfile, ...values };
+      setUserProfile(updatedProfile);
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      setProfileModalVisible(false);
+      message.success('Profile updated successfully!');
+    } catch (error) {
+      message.error('Failed to update profile');
+    }
+  };
+
+  // Settings handlers
+  const handleSettingsClick = () => {
+    setSettingsModalVisible(true);
+    settingsForm.setFieldsValue(userSettings);
+  };
+
+  const handleSettingsUpdate = async (values) => {
+    try {
+      const updatedSettings = { ...userSettings, ...values };
+      setUserSettings(updatedSettings);
+      localStorage.setItem('userSettings', JSON.stringify(updatedSettings));
+      setSettingsModalVisible(false);
+      message.success('Settings updated successfully!');
+      
+      // Apply theme change if needed
+      if (values.theme && values.theme !== userSettings.theme) {
+        message.info('Theme change will take effect after page refresh');
+      }
+    } catch (error) {
+      message.error('Failed to update settings');
+    }
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    Modal.confirm({
+      title: 'Confirm Logout',
+      content: 'Are you sure you want to logout?',
+      okText: 'Logout',
+      cancelText: 'Cancel',
+      onOk() {
+        // Clear user data
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userSettings');
+        message.success('Logged out successfully!');
+        
+        // In a real app, you would redirect to login page
+        // For now, we'll just show a message
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      },
+    });
+  };
+
   const notificationMenu = (
     <Menu style={{ width: 350, maxHeight: 400, overflow: 'auto' }}>
       <Menu.Item key="header" style={{ borderBottom: '1px solid #f0f0f0' }}>
@@ -149,14 +245,14 @@ const Header = () => {
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile" icon={<UserOutlined />}>
+      <Menu.Item key="profile" icon={<UserOutlined />} onClick={handleProfileClick}>
         Profile
       </Menu.Item>
-      <Menu.Item key="settings" icon={<SettingOutlined />}>
+      <Menu.Item key="settings" icon={<SettingOutlined />} onClick={handleSettingsClick}>
         Settings
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="logout" icon={<LogoutOutlined />}>
+      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
         Logout
       </Menu.Item>
     </Menu>
@@ -195,6 +291,151 @@ const Header = () => {
           <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer' }} />
         </Dropdown>
       </HeaderRight>
+
+      {/* Profile Modal */}
+      <Modal
+        title="User Profile"
+        open={profileModalVisible}
+        onCancel={() => setProfileModalVisible(false)}
+        onOk={() => profileForm.submit()}
+        okText="Update Profile"
+        cancelText="Cancel"
+        width={600}
+      >
+        <Form
+          form={profileForm}
+          layout="vertical"
+          onFinish={handleProfileUpdate}
+        >
+          <Form.Item
+            label="Full Name"
+            name="name"
+            rules={[{ required: true, message: 'Please enter your name' }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Enter your full name" />
+          </Form.Item>
+          
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input prefix={<EditOutlined />} placeholder="Enter your email" />
+          </Form.Item>
+          
+          <Form.Item
+            label="Role"
+            name="role"
+            rules={[{ required: true, message: 'Please enter your role' }]}
+          >
+            <Input placeholder="Enter your role" />
+          </Form.Item>
+          
+          <Form.Item
+            label="Department"
+            name="department"
+            rules={[{ required: true, message: 'Please enter your department' }]}
+          >
+            <Input placeholder="Enter your department" />
+          </Form.Item>
+          
+          <Form.Item
+            label="Join Date"
+            name="joinDate"
+          >
+            <Input disabled />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal
+        title="Settings"
+        open={settingsModalVisible}
+        onCancel={() => setSettingsModalVisible(false)}
+        onOk={() => settingsForm.submit()}
+        okText="Save Settings"
+        cancelText="Cancel"
+        width={600}
+      >
+        <Form
+          form={settingsForm}
+          layout="vertical"
+          onFinish={handleSettingsUpdate}
+        >
+          <Form.Item
+            label="Theme"
+            name="theme"
+            tooltip="Choose your preferred theme"
+          >
+            <Select>
+              <Select.Option value="light">Light</Select.Option>
+              <Select.Option value="dark">Dark</Select.Option>
+              <Select.Option value="auto">Auto (System)</Select.Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            label="Notifications"
+            name="notifications"
+            valuePropName="checked"
+            tooltip="Enable or disable notifications"
+          >
+            <Switch />
+          </Form.Item>
+          
+          <Form.Item
+            label="Auto Refresh"
+            name="autoRefresh"
+            valuePropName="checked"
+            tooltip="Automatically refresh data"
+          >
+            <Switch />
+          </Form.Item>
+          
+          <Form.Item
+            label="Refresh Interval (seconds)"
+            name="refreshInterval"
+            tooltip="How often to refresh data automatically"
+          >
+            <Select>
+              <Select.Option value={15}>15 seconds</Select.Option>
+              <Select.Option value={30}>30 seconds</Select.Option>
+              <Select.Option value={60}>1 minute</Select.Option>
+              <Select.Option value={300}>5 minutes</Select.Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            label="Default Analysis Period"
+            name="defaultPeriod"
+            tooltip="Default time period for analysis"
+          >
+            <Select>
+              <Select.Option value="1d">1 Day</Select.Option>
+              <Select.Option value="1mo">1 Month</Select.Option>
+              <Select.Option value="3mo">3 Months</Select.Option>
+              <Select.Option value="6mo">6 Months</Select.Option>
+              <Select.Option value="1y">1 Year</Select.Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            label="Risk Tolerance"
+            name="riskTolerance"
+            tooltip="Your risk tolerance level for portfolio optimization"
+          >
+            <Select>
+              <Select.Option value="conservative">Conservative</Select.Option>
+              <Select.Option value="moderate">Moderate</Select.Option>
+              <Select.Option value="aggressive">Aggressive</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </StyledHeader>
   );
 };

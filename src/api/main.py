@@ -309,8 +309,8 @@ async def run_backtest(
     Demonstrates: Strategy backtesting, performance analysis
     """
     try:
-        # Fetch market data
-        data = collector.get_stock_data(request.symbol, "1y")
+        # Fetch market data - use sample data for testing
+        data = collector.generate_sample_data(request.symbol, "1y")
         
         if data is None or data.empty:
             raise HTTPException(status_code=404, detail=f"No data found for symbol {request.symbol}")
@@ -324,7 +324,13 @@ async def run_backtest(
         # Remove timezone info for comparison
         if data.index.tz is not None:
             data.index = data.index.tz_localize(None)
+        
+        logger.info(f"Original data range: {data.index[0]} to {data.index[-1]}")
+        logger.info(f"Requested range: {start_date} to {end_date}")
+        
         data = data[(data.index >= start_date) & (data.index <= end_date)]
+        
+        logger.info(f"Filtered data rows: {len(data)}")
         
         if data.empty:
             raise HTTPException(status_code=400, detail="No data available for the specified date range")

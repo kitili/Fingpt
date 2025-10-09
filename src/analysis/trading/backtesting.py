@@ -114,23 +114,21 @@ class MovingAverageStrategy(TradingStrategy):
     
     def should_buy(self, data: pd.DataFrame, index: int) -> bool:
         """Buy when short MA crosses above long MA"""
-        if index < self.long_window:
+        if index < self.short_window:
             return False
         
-        current_signal = data['Signal'].iloc[index]
-        previous_signal = data['Signal'].iloc[index - 1]
-        
-        return current_signal == 1 and previous_signal == 0
+        # Check for position change from 0 to 1 (crossover up)
+        current_position = data['Position'].iloc[index]
+        return current_position == 1.0
     
     def should_sell(self, data: pd.DataFrame, index: int, position: Dict) -> bool:
         """Sell when short MA crosses below long MA"""
-        if index < self.long_window:
+        if index < self.short_window:
             return False
         
-        current_signal = data['Signal'].iloc[index]
-        previous_signal = data['Signal'].iloc[index - 1]
-        
-        return current_signal == 0 and previous_signal == 1
+        # Check for position change from 1 to 0 (crossover down)
+        current_position = data['Position'].iloc[index]
+        return current_position == -1.0
 
 class RSIStrategy(TradingStrategy):
     """

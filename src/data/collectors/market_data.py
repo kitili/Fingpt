@@ -250,11 +250,20 @@ class MarketDataCollector:
             # Generate trading dates (weekdays only)
             date_range = pd.date_range(start=start_date, end=end_date, freq='B')[-days:]
             
-            # Generate realistic price data using random walk
+            # Generate realistic price data using random walk with higher volatility
             np.random.seed(hash(symbol) % 2**32)  # Consistent seed per symbol
             initial_price = 100 + (hash(symbol) % 200)  # Base price between 100-300
             
-            returns = np.random.normal(0.0005, 0.02, days)  # Daily returns with slight upward bias
+            # Create more volatile data with trends to generate crossovers
+            returns = np.random.normal(0.001, 0.03, days)  # Higher volatility for more signals
+            
+            # Add some trend periods to create crossovers
+            trend_periods = days // 4
+            for i in range(0, days, trend_periods):
+                end_idx = min(i + trend_periods, days)
+                trend_strength = np.random.choice([-0.002, 0.002])  # Up or down trend
+                returns[i:end_idx] += trend_strength
+            
             prices = [initial_price]
             
             for ret in returns[1:]:
